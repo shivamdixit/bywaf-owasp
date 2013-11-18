@@ -306,6 +306,9 @@ class WAFterpreter(Cmd):
                self.current_plugin.options[name] = value, _defaultvalue, _required, _descr
 
    def do_test(self,line):
+       x=0
+       while True:
+          x+=1
        print self.plugin_paths
        
    # return a Futures object given its job ID as a string or int
@@ -473,16 +476,18 @@ class WAFterpreter(Cmd):
 
        # loop over the specified jobs...
        for job_id in job_ids:
-           job = self.get_job( job_id )
+           try:
+               job = self.get_job( job_id )
            
-           if not job.cancel():
-               answer = raw_input('job could not be cancelled, do you want to kill it? [Y/N]')
-           if 'Y' or 'y' in answer:
-               os.kill(self.pids[job_id], signal.SIG_DFL)
+               if not job.cancel():
+                   print self.pids
+                   print job_id
+                   answer = raw_input('job could not be cancelled, do you want to kill it? [Y/N]')
+                   if 'Y' or 'y' in answer:
+                       os.kill(self.pids[job_id], signal.SIG_DFL)
+
          
            # ...and try to end them
-           try:
-               job.cancel()
            except:
                print('Job ID {} not found'.format(job_id))
 
