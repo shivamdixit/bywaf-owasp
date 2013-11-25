@@ -84,11 +84,11 @@ class WAFterpreter(Cmd):
        if len(self.finished_jobs) > 0:
            
            for j in self.finished_jobs:
-               print("[{}]  Done  {}".format(str(j.job_id), j.command_line))
-               
+               self.stdout.write(("[{}]  Done  {}".format(str(j.job_id), j.command_line)))
+
            # clear the finished jobs list
            self.finished_jobs = []
-           
+
        return stop
 
    # override Cmd.emptyline() so that it does not re-issue the last command by default
@@ -97,7 +97,7 @@ class WAFterpreter(Cmd):
 
    # override exit from command loop to say goodbye
    def postloop(self):
-        print('Goodbye')
+        self.stdout.write(('Goodbye'))
         
    # override Cmd.getnames() to return dir(), and not 
    # dir(self.__class__).  Otherwise, get_names() doesn't return the
@@ -155,7 +155,7 @@ class WAFterpreter(Cmd):
             try:
                 func = getattr(self, 'do_' + cmd)
             except AttributeError:
-                print('command "{}" not found'.format(cmd))
+                self.stdout.write('command "{}" not found'.format(cmd))
                 return # return self.default(line)
       
             # list of commands for the currently-selected plugin
@@ -166,7 +166,7 @@ class WAFterpreter(Cmd):
             # if user requested it, background the job
             # do not do this for internal commands                
             if exec_in_background: #and self.current_plugin and cmd in command_names:
-                print('backgrounding job {}'.format(self.job_counter))
+                self.stdout.write('backgrounding job {}'.format(self.job_counter))
                 
                 # background the job
                 job = self.job_executor.submit(func, arg)
@@ -357,13 +357,13 @@ class WAFterpreter(Cmd):
        try:
            new_module_name, new_module = self._load_module(filepath)
        except Exception as e:
-           print('Could not load module {}: {}'.format(filepath,e))
+           self.stdout.write('Could not load module {}: {}'.format(filepath,e))
            return
 
        # if this plugin has already been loaded, notify user.
        # this will revert any changes they made to the options
        if self.current_plugin_name == new_module_name:
-           print('Import:  Overwriting already loaded module "{}"'.format(new_module_name))
+           self.stdout.write('Import:  Overwriting already loaded module "{}"'.format(new_module_name))
 
        # give the new module access to other modules
        new_module.app = self           
@@ -424,7 +424,7 @@ class WAFterpreter(Cmd):
        try:
            job_ids = [int(i) for i in args.split()]
        except:
-           print('usage: kill <JOB> [<JOB2> ...  <JOBN>]')
+           self.stdout.write('usage: kill <JOB> [<JOB2> ...  <JOBN>]')
            return
 
        # loop over the specified jobs...
@@ -437,9 +437,9 @@ class WAFterpreter(Cmd):
 #             result = job.cancel() 
 
              job.Canceled = True
-             print("result is {}".format(result))
+             self.stdout.write("result is {}".format(result))
          except:
-             print('Job ID {} not found'.format(job_id))
+             self.stdout.write('Job ID {} not found'.format(job_id))
 
              
    def complete_kill(self,text,line,begin_idx,end_idx):
@@ -453,7 +453,7 @@ class WAFterpreter(Cmd):
        try:
            job_ids = [int(i) for i in args.split()]
        except:
-           print('usage: d <JOB> [<JOB2> ...  <JOBN>]')
+           self.stdout.write('usage: d <JOB> [<JOB2> ...  <JOBN>]')
            return
 
        for job_id in job_ids:
@@ -463,14 +463,14 @@ class WAFterpreter(Cmd):
              # match found, so remove it.  Fail if this job is currently running.
              if item.job_id == job_id:
                  if item.running():
-                     print('Job {} is still running!'.format(job_id))
+                     self.stdout.write('Job {} is still running!'.format(job_id))
                      break
 
                  # remove from job queue
                  del self.jobs[i]
                  break
          else:
-             print('Job ID {} not found'.format(job_id))
+             self.stdout.write('Job ID {} not found'.format(job_id))
 
    # completion function for the kill command: return only running jobs
    def complete_d(self,text,line,begin_idx,end_idx):
@@ -484,7 +484,7 @@ class WAFterpreter(Cmd):
        try:
            job_id = int(_job_id)
        except:
-           print('usage: result <JOBID> or just <JOBID>')
+           self.stdout.write('usage: result <JOBID> or just <JOBID>')
            return
        
        jobs = dict(zip((j.job_id for j in self.jobs), (j for j in self.jobs)))
@@ -496,17 +496,17 @@ class WAFterpreter(Cmd):
 
            # print job result if it is available, else notify user and return empty
            if job.running():
-               print('Job {} still running'.format(job_id))
+               self.stdout.write('Job {} still running'.format(job_id))
                return
 
            # else return the job's result
            else:
                result_text =  job.result()
-               print(result_text)
+               self.stdout.write(result_text)
            
        # if job ID is not valid, print error and return
        else:
-           print('Job ID {} not found'.format(job_id))
+           self.stdout.write('Job ID {} not found'.format(job_id))
            
    # completion function for the do_result command: return only completed jobs
    def complete_result(self,text,line,begin_idx,end_idx):
@@ -526,7 +526,7 @@ class WAFterpreter(Cmd):
                    self.cmdqueue.append(line)                   
                    
        except IOError as e: 
-           print('Could not load script file: {}'.format(e))
+           self.stdout.write('Could not load script file: {}'.format(e))
 
    def complete_script(self,text,line,begin_idx,end_idx):
        return self.filename_completer(text, line, begin_idx, end_idx, root_dir=self.global_options['PLUGIN_PATH'])
@@ -540,19 +540,19 @@ class WAFterpreter(Cmd):
        
        # return if there is nothing to show
        if total_jobs == 0:
-           print('No jobs completed or currently running.')
+           self.stdout.write('No jobs completed or currently running.')
            return
        
        # loop over futures objects and tally results
        jobs_completed = len([j for j in self.jobs if j.done()])
-       print('{} jobs total:  {} complete, {} running\n'.format(total_jobs, jobs_completed, total_jobs-jobs_completed))
+       self.stdout.write('{} jobs total:  {} complete, {} running\n'.format(total_jobs, jobs_completed, total_jobs-jobs_completed))
        
        # construct the format string:  left-aligned, space-padded, minimum.maximum
        format_string = "{:<4.4} {:<20.20} {:<15.15}"
        
        # print the header
-       print(format_string.format("ID", "Command", "Status"))
-       print(format_string.format(*["-"*20]*3))
+       self.stdout.write(format_string.format("ID", "Command", "Status"))
+       self.stdout.write(format_string.format(*["-"*20]*3))
        
        # loop through the jobs and display each
        for j in self.jobs:
@@ -562,7 +562,7 @@ class WAFterpreter(Cmd):
            elif j.running():
                status = 'Running'
                
-           print(format_string.format( str(j.job_id), j.command_line, status ))
+           self.stdout.write(format_string.format( str(j.job_id), j.command_line, status ))
         
    def do_gset(self, args):
        """set a global variable.  This command takes the form 'gset VARNAME VALUE'."""
@@ -570,7 +570,7 @@ class WAFterpreter(Cmd):
        (key,value)=string.split(args, maxsplit=1)
        self.global_options[key] = value
        
-       print('{} => {}'.format(key, value))
+       self.stdout.write('{} => {}'.format(key, value))
        
    # completion function for the do_gset command: return available global option names
    def complete_gset(self,text,line,begin_idx,end_idx):
@@ -584,11 +584,11 @@ class WAFterpreter(Cmd):
        format_string = '{:<20.20} {}'
        
        # print the header
-       print(format_string.format('Global Option', 'Value'))
-       print(format_string.format(*["-"*20] * 2))
+       self.stdout.write(format_string.format('Global Option', 'Value'))
+       self.stdout.write(format_string.format(*["-"*20] * 2))
 
        for k in sorted(self.global_options.keys()): 
-           print(format_string.format(k, self.global_options[k]))
+           self.stdout.write(format_string.format(k, self.global_options[k]))
 
    # completion function for the do_gset command: return available global option names
    def complete_gshow(self,text,line,begin_idx,end_idx):
@@ -598,19 +598,19 @@ class WAFterpreter(Cmd):
    def set(self, name, value):
        """set a plugin's local variable.  This command takes the form 'set VARNAME VALUE'."""
        self.set_option(name, value)
-       print('{} => {}'.format(name, value))
+       self.stdout.write('{} => {}'.format(name, value))
        
    #sets plugin parameters, takes the format of 'set NAME_1=VALUE_1 NAME_2=VALUE_2 ...'
    def do_set(self, arg):
        
        if not self.current_plugin:
-           print('no plugin selected')
+           self.stdout.write('no plugin selected')
            return
        
        opt_count = arg.count('=')
        
        if opt_count == 0:
-           print('no option set')
+           self.stdout.write('no option set')
            return
 
        #set varibles to store options
@@ -647,7 +647,7 @@ class WAFterpreter(Cmd):
 
        # if no plugin is currently selected
        if not self.current_plugin: 
-           print('No plugin currently selected')
+           self.stdout.write('No plugin currently selected')
            return
 
        SHOW_COMMANDS = False
@@ -680,7 +680,7 @@ class WAFterpreter(Cmd):
                    for name in options_list:
                        output_string.append(format_string.format(name, *self.current_plugin.options[name]))
                except KeyError:
-                   print("Error, no such option")
+                   self.stdout.write("Error, no such option")
                    return
 
        if params[0] in ('commands','all'):
@@ -715,14 +715,14 @@ class WAFterpreter(Cmd):
                    
                        
                except AttributeError:
-                   print("Error, no such command")
+                   self.stdout.write("Error, no such command")
                    return
                
                output_string.append('\n')
                
                    
        # display
-       print('\n'.join(output_string))
+       self.stdout.write('\n'.join(output_string))
 
                    
 
@@ -772,7 +772,7 @@ class WAFterpreter(Cmd):
    def do_shell(self, line):
        """Execute shell commands"""
        output = os.popen(line).read()
-       print(output)
+       self.stdout.write(output)
        
    def do_history(self, params):
        """Load, save, display and clear command history"""
@@ -788,20 +788,20 @@ class WAFterpreter(Cmd):
                fname = cmd[1]
                self.load_history(fname)
            except IndexError: # no filename specified
-               print('filename not specified')
+               self.stdout.write('filename not specified')
            except IOError as e: # error in loading file
-               print('could not load file: {}'.format(e))
+               self.stdout.write('could not load file: {}'.format(e))
        elif cmd[0]=='save':
            try:
                fname = cmd[1]
                self.save_history(fname)
            except IndexError: # no filename specified
-               print('filename not specified')
+               self.stdout.write('filename not specified')
            except IOError as e: # error in saving file
-               print('could not write file: {}'.format(e))
+               self.stdout.write('could not write file: {}'.format(e))
 
        elif cmd[0]=='show':
-           print('\n'.join(self.get_history_items()))
+           self.stdout.write('\n'.join(self.get_history_items()))
            
        elif cmd[0]=='clear':
            self.clear_history()
