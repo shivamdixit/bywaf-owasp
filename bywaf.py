@@ -357,13 +357,13 @@ class WAFterpreter(Cmd):
        try:
            new_module_name, new_module = self._load_module(filepath)
        except Exception as e:
-           self.stdout.write('Could not load module {}: {}'.format(filepath,e))
+           self.print_line('Could not load module {}: {}'.format(filepath,e))
            return
 
        # if this plugin has already been loaded, notify user.
        # this will revert any changes they made to the options
        if self.current_plugin_name == new_module_name:
-           self.stdout.write('Import:  Overwriting already loaded module "{}"'.format(new_module_name))
+           self.print_line('Import:  Overwriting already loaded module "{}"'.format(new_module_name))
 
        # give the new module access to other modules
        new_module.app = self           
@@ -424,7 +424,7 @@ class WAFterpreter(Cmd):
        try:
            job_ids = [int(i) for i in args.split()]
        except:
-           self.stdout.write('usage: kill <JOB> [<JOB2> ...  <JOBN>]')
+           self.print_line('usage: kill <JOB> [<JOB2> ...  <JOBN>]')
            return
 
        # loop over the specified jobs...
@@ -437,9 +437,9 @@ class WAFterpreter(Cmd):
 #             result = job.cancel() 
 
              job.Canceled = True
-             self.stdout.write("result is {}".format(result))
+             self.print_line("result is {}".format(result))
          except:
-             self.stdout.write('Job ID {} not found'.format(job_id))
+             self.print_line('Job ID {} not found'.format(job_id))
 
              
    def complete_kill(self,text,line,begin_idx,end_idx):
@@ -484,7 +484,7 @@ class WAFterpreter(Cmd):
        try:
            job_id = int(_job_id)
        except:
-           self.stdout.write('usage: result <JOBID> or just <JOBID>')
+           self.print_line('usage: result <JOBID> or just <JOBID>')
            return
        
        jobs = dict(zip((j.job_id for j in self.jobs), (j for j in self.jobs)))
@@ -526,7 +526,7 @@ class WAFterpreter(Cmd):
                    self.cmdqueue.append(line)                   
                    
        except IOError as e: 
-           self.stdout.write('Could not load script file: {}'.format(e))
+           self.print_line('Could not load script file: {}'.format(e))
 
    def complete_script(self,text,line,begin_idx,end_idx):
        return self.filename_completer(text, line, begin_idx, end_idx, root_dir=self.global_options['PLUGIN_PATH'])
@@ -604,13 +604,13 @@ class WAFterpreter(Cmd):
    def do_set(self, arg):
        
        if not self.current_plugin:
-           self.stdout.write('no plugin selected')
+           self.print_line('no plugin selected')
            return
        
        opt_count = arg.count('=')
        
        if opt_count == 0:
-           self.stdout.write('no option set')
+           self.print_line('no option set')
            return
 
        #set varibles to store options
@@ -680,10 +680,10 @@ class WAFterpreter(Cmd):
                    for name in options_list:
                        output_string.append(format_string.format(name, *self.current_plugin.options[name]))
                except KeyError:
-                   self.stdout.write("Error, no such option")
+                   self.print_line("Error, no such option")
                    return
 
-       if params[0] in ('commands','all'):
+       if params[0] in ('commands', 'all'):
            
                # show all options if no option name was given
 #               try:
@@ -697,7 +697,7 @@ class WAFterpreter(Cmd):
                else:  # note: the if clause closes this comprehension to insecure lookups
                    commands_list = ['do_' + c for c in params[1:]]# if 'do_'+c in _command_list]
                
-               # get the option names from the rest of the parameters.
+               # gsetet the option names from the rest of the parameters.
                
                # construct the format string:  left-aligned, space-padded, minimum.maximum
                # name, value, defaultvalue, required, description                   
@@ -715,7 +715,7 @@ class WAFterpreter(Cmd):
                    
                        
                except AttributeError:
-                   self.stdout.write("Error, no such command")
+                   self.print_line("Error, no such command")
                    return
                
                output_string.append('\n')
@@ -829,6 +829,12 @@ class WAFterpreter(Cmd):
  
            # re-use the filename completer, hard-code starting directory to '.'
            return self.filename_completer(text, line, begin_idx, end_idx, level=2, root_dir='.')
+
+   # writes a line to stdin and flushes (for lightweight output)
+   def print_line(self, line):
+       self.stdout.write(line)
+       self.stdout.write('\n')
+       self.stdout.flush()
 
 #prevents exceptions from bringing down the app
 #and offers options to handle the exception.
