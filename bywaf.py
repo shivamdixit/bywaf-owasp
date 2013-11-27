@@ -11,12 +11,12 @@ import readline
 import argparse
 from cmd import Cmd
 import sys
-import string
+import string,re
 import concurrent.futures
 import imp # for loading other modules
 import os.path
 import os
-from functools import partial
+#from functools import partial
 
 
 # our library
@@ -566,10 +566,27 @@ class WAFterpreter(Cmd):
         
    def do_gset(self, args):
        """set a global variable.  This command takes the form 'gset VARNAME VALUE'."""
+       
+       items = re.findall(r'(?:[^\s,"]|"(?:\\.|[^"])*")+', args)       
 
-       (key,value)=string.split(args, maxsplit=1)
-       self.global_options[key] = value
-       self.print_line('{} => {}'.format(key, value))
+       if  len(items)==0:
+           self.print_line('no gobal option name specified')
+           return       
+       
+       for i in items:
+           key, value = string.split(i, '=', maxsplit=1)  # only split up to the first '='
+           
+           # remove double- and single-quotes from the split string, if it has any
+           if (value.startswith('\'') and value.endswith('\'')) or (value.startswith('"') and value.endswith('"')):
+               value = value[1:-1]
+               
+           # set the option
+           try:
+               self.print_line('{} => {}'.format(key, value))
+               self.global_options[key] = value
+           except AttributeError:
+               self.print_line('Unknown plugin option "{}"'.format(key))               
+       
        
    # completion function for the do_gset command: return available global option names
    def complete_gset(self,text,line,begin_idx,end_idx):
@@ -598,9 +615,41 @@ class WAFterpreter(Cmd):
        """set a plugin's local variable.  This command takes the form 'set VARNAME=VALUE [VARNAME2=VALUE2 ...]'."""
        self.set_option(name, value)
        self.print_line('{} => {}'.format(name, value))
+
+   #sets plugin parameters, takes the format of 'set NAME_1=VALUE_1 NAME_2=VALUE_2 ...'       
+   def do_set(self,arg):
+   
+       # line taken from http://stackoverflow.com/questions/16710076/python-split-a-string-respect-and-preserve-quotes
+       items = re.findall(r'(?:[^\s,"]|"(?:\\.|[^"])*")+', arg)
+
+       if not self.current_plugin:
+           self.print_line('no plugin selected; you must first select a plugin with the "use" command.')
+           return
        
+       if  len(items)==0:
+           self.print_line('no option set')
+           return       
+       
+       for i in items:
+           key, value = string.split(i, '=', maxsplit=1)  # only split up to the first '='
+           
+           # remove double- and single-quotes from the split string, if it has any
+           if (value.startswith('\'') and value.endswith('\'')) or (value.startswith('"') and value.endswith('"')):
+               value = value[1:-1]
+               
+           # set the option
+           try:
+               self.print_line('{} => {}'.format(key, value))           
+               self.set_option(key, value)
+           except AttributeError:
+               self.print_line('Unknown plugin option "{}"'.format(key))
+
+              
+   
    #sets plugin parameters, takes the format of 'set NAME_1=VALUE_1 NAME_2=VALUE_2 ...'
-   def do_set(self, arg):
+   
+   # old version of the method
+   def DISABLED_do_set(self, arg):
        
        if not self.current_plugin:
            self.print_line('no plugin selected')
@@ -611,17 +660,18 @@ class WAFterpreter(Cmd):
        if opt_count == 0:
            self.print_line('no option set')
            return
-
+       
        #set varibles to store options
        name, value, next_name = ('', '', '')
 
        #is it only one 'set' ?
        if opt_count == 1:
            name,value = arg.split('=')
+
            self.set_option(name, value)
 
        elif opt_count > 1:
-           for i, param in enumerate(arg.split('=')):
+           for i, param in enumerate(arg.split('=')):  # FIXME:  Do not split along escaped/quoted equals signs
                
                #we get a list of format: [name],[value name]...[value]
                param_length = len(param.split())
