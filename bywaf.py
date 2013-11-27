@@ -569,12 +569,11 @@ class WAFterpreter(Cmd):
 
        (key,value)=string.split(args, maxsplit=1)
        self.global_options[key] = value
-       
        self.print_line('{} => {}'.format(key, value))
        
    # completion function for the do_gset command: return available global option names
    def complete_gset(self,text,line,begin_idx,end_idx):
-       option_names = [opt+' ' for opt in self.global_options.keys() if opt.startswith(text)]
+       option_names = [opt+'=' for opt in self.global_options.keys() if opt.startswith(text)]
        return option_names       
        
    def do_gshow(self, args):
@@ -639,7 +638,7 @@ class WAFterpreter(Cmd):
                    
    # completion function for the do_set command: return available option names
    def complete_set(self,text,line,begin_idx,end_idx):
-       option_names = [opt+' ' for opt in self.current_plugin.options.keys() if opt.startswith(text)]
+       option_names = [opt+'=' for opt in self.current_plugin.options.keys() if opt.startswith(text)]
        return option_names
        
    def do_show(self, args):
