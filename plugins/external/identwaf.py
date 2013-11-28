@@ -67,6 +67,7 @@ def do_identwaf(args):
         # call its main with the parameters we set above
 
         wafw00f.main(params)
+        return
         
     except Exception as e:
         import traceback as t

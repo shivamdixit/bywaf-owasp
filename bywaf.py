@@ -565,7 +565,7 @@ class WAFterpreter(Cmd):
            self.print_line(format_string.format( str(j.job_id), j.command_line, status ))
         
    def do_gset(self, args):
-       """set a global variable.  This command takes the form 'gset VARNAME VALUE'."""
+       """set a global variable.  This command takes the form 'gset VARNAME=VALUE VARNAME2=VALUE2 ... VARNAME=VALUEN.  Values can be enclosed in single- and double-quotes'."""
        
        items = re.findall(r'(?:[^\s,"]|"(?:\\.|[^"])*")+', args)       
 
@@ -582,10 +582,10 @@ class WAFterpreter(Cmd):
                
            # set the option
            try:
-               self.print_line('{} => {}'.format(key, value))
+               self.print_line('[Global] {} => {}'.format(key, value))
                self.global_options[key] = value
            except AttributeError:
-               self.print_line('Unknown plugin option "{}"'.format(key))               
+               self.print_line('Unknown global option "{}"'.format(key))               
        
        
    # completion function for the do_gset command: return available global option names
@@ -611,14 +611,10 @@ class WAFterpreter(Cmd):
        option_names = [opt+' ' for opt in self.global_options.keys() if opt.startswith(text)]
        return option_names                  
            
-   def set(self, name, value):
-       """set a plugin's local variable.  This command takes the form 'set VARNAME=VALUE [VARNAME2=VALUE2 ...]'."""
-       self.set_option(name, value)
-       self.print_line('{} => {}'.format(name, value))
-
    #sets plugin parameters, takes the format of 'set NAME_1=VALUE_1 NAME_2=VALUE_2 ...'       
    def do_set(self,arg):
-   
+       """set a plugin's local variable.  This command takes the form 'set VARNAME=VALUE VARNAME2=VALUE2 ... VARNAME=VALUEN.  Values can be enclosed in single- and double-quotes'."""
+       
        # line taken from http://stackoverflow.com/questions/16710076/python-split-a-string-respect-and-preserve-quotes
        items = re.findall(r'(?:[^\s,"]|"(?:\\.|[^"])*")+', arg)
 
@@ -644,11 +640,9 @@ class WAFterpreter(Cmd):
            except AttributeError:
                self.print_line('Unknown plugin option "{}"'.format(key))
 
-              
-   
-   #sets plugin parameters, takes the format of 'set NAME_1=VALUE_1 NAME_2=VALUE_2 ...'
-   
-   # old version of the method
+
+   # old version of the above method
+   #sets plugin parameters, takes the format of 'set NAME_1=VALUE_1 NAME_2=VALUE_2 ...'   
    def DISABLED_do_set(self, arg):
        
        if not self.current_plugin:
@@ -896,7 +890,7 @@ def interpreter_loop():
     # handle an exception
     except Exception as e:
         
-        print('\nerror encountered, continue[Any-Key], show stack trace and continue[SC], show stack trace and quit[S]')
+        wafterpreter.print_line('\nerror encountered, continue[Any-Key], show stack trace and continue[SC], show stack trace and quit[S]')
         
         # python2/3 compatibility check
         try:
@@ -918,11 +912,11 @@ def interpreter_loop():
             
         #present the error briefly            
         else:
-            print('{}\n'.format(e))
+            wafterpreter.print_line('{}\n'.format(e))
             
     #we don't want to show the user the welcome message again.
     wafterpreter.intro = ''
-    interpreter_loop()
+    interpreter_loop()  # FIXME: This is not elegant.. work around this.
     
 #---------------------------------------------------------------
 #
