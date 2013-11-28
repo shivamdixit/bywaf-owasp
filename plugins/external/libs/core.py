@@ -1,10 +1,10 @@
 ########################
-#bywaf utility methods, to be loaded on init
+#bywaf core methods, to be loaded on init
 ########################
 
 import urllib2
 
-print('utilities module loaded')
+print('core module loaded')
 
 options = {'options': ['default', 'value']}
 
