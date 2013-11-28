@@ -1,5 +1,5 @@
 ########################
-#bywaf utility methods, to be loaded on init
+#bywaf core methods, to be loaded on init
 ########################
 
 import urllib2
