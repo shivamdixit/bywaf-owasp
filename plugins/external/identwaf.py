@@ -44,13 +44,15 @@ def do_identwaf(args):
         app.set_option('FIND_ALL', 'yes')
        
     # set up parameters for calling WafW00F
-    params = 'wafw00f ' + ' '.join([
+    params = [
        '-' + 'v' * int(options['VERBOSE'][0]),  # interpret verbosity
          '--findall=' + options['FIND_ALL'][0],
          '--disableredict=' + options['DISABLE_REDIRECT'][0],
          '--xmlrpc=no',
          options['TARGET_HOST'][0],
-         ])
+         ]
+         
+    app.print_line('params is: "{}"'.format(params))
 
     # run wafwoof
     try:
