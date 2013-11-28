@@ -44,7 +44,7 @@ currentDir = os.getcwd()
 scriptDir = os.path.dirname(sys.argv[0]) or '.'
 os.chdir( scriptDir )
 
-from plugins.external.libs.evillib import *
+from plugins/external/libs/evillib.py import *
 
 __version__ = '0.9.0'
 
