@@ -4,7 +4,7 @@
 
 import urllib2
 
-print('utilities module loaded')
+print('core module loaded')
 
 options = {'options': ['default', 'value']}
 
