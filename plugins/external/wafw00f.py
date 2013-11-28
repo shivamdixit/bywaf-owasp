@@ -616,7 +616,7 @@ def xmlrpc_interface(bindaddr=('localhost',8001)):
 
 
 
-def do_main(args):
+def main(args):
     print lackofart
     parser = OptionParser(usage="""%prog url1 [url2 [url3 ... ]]\r\nexample: %prog http://www.victim.org/""")
     parser.add_option('-v','--verbose',action='count', dest='verbose', default=0,
