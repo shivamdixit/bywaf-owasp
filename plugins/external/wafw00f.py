@@ -44,7 +44,7 @@ currentDir = os.getcwd()
 scriptDir = os.path.dirname(sys.argv[0]) or '.'
 os.chdir( scriptDir )
 
-from libs.evillib import *
+from plugins.external.libs.evillib import *
 
 __version__ = '0.9.0'
 
@@ -616,7 +616,7 @@ def xmlrpc_interface(bindaddr=('localhost',8001)):
 
 
 
-def main():
+def do_main(args):
     print lackofart
     parser = OptionParser(usage="""%prog url1 [url2 [url3 ... ]]\r\nexample: %prog http://www.victim.org/""")
     parser.add_option('-v','--verbose',action='count', dest='verbose', default=0,
@@ -635,9 +635,16 @@ def main():
                       default=8001,help='Specify an alternative port to listen on, default 8001')
     parser.add_option('--version','-V',dest='version', action='store_true',
                       default=False,help='Print out the version')
-    options,args = parser.parse_args()
+    options,args = parser.parse_args(args)
     logging.basicConfig(level=calclogginglevel(options.verbose))
     log = logging.getLogger()
+
+    # code in the parameters >here<
+    #parser.version = 
+    #parser.xmlrpcport
+    #parser.xmlrpc
+    #parser.
+    
     if options.list:
         print "Can test for these WAFs:\r\n"
         attacker = WafW00F(None)        
@@ -661,7 +668,7 @@ def main():
         pret = oururlparse(target)
         if pret is None:
             log.critical('The url %s is not well formed' % target)
-            sys.exit(1)
+            return 1 # sys.exit(1)
         (hostname,port,path,query,ssl) = pret
         log.info('starting wafw00f on %s' % target)
         attacker = WafW00F(hostname,port=port,ssl=ssl,
@@ -669,7 +676,7 @@ def main():
                            followredirect=options.followredirect)
         if attacker.normalrequest() is None:
             log.error('Site %s appears to be down' % target)
-            sys.exit(1)
+            return 1 # sys.exit(1)
         if options.test:
             if attacker.wafdetections.has_key(options.test):
                 waf = attacker.wafdetections[options.test](attacker)
@@ -698,3 +705,5 @@ if __name__ == '__main__':
     if sys.hexversion < 0x2040000:
         sys.stderr.write('Your version of python is way too old .. please update to 2.4 or later\r\n')        
     main()
+    
+    print 'wafwoof done!!!!!!1'
