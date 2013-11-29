@@ -20,14 +20,13 @@ options = {
 """ setting TARGET_HOST """
 def set_TARGET_HOST(new_value):
 	print('TARGET_HOST= "{}"'.format(value))
-	# retrieve the option (it's a tuple)       
-	_value, _defaultvalue, _required, _descr = options['TARGET_HOST']
-	options['TARGET_HOST'] = new_value, _defaultvalue, _required, _descr
-
-def do_run():
+	
+def do_methods(line):
 	"""get allowed methods"""
-	Aurl = options['TARGET_HOST']
-	conn = httplib.HTTPConnection(Aurl)
-	conn.request('OPTIONS', '/')
-	response = conn.getresponse()
-	print response.getheader('allow')
+	Aurl = line
+	if not line:
+		Aurl = options['TARGET_HOST']
+		conn = httplib.HTTPConnection(Aurl)
+		conn.request('OPTIONS', '/')
+		response = conn.getresponse()
+		print response.getheader('allow')
