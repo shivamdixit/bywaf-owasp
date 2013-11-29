@@ -21,8 +21,8 @@ options = {
 def set_TARGET_HOST(new_value):
 	print('TARGET_HOST= "{}"'.format(new_value))
 	# retrieve the option (it's a tuple)       
-	_value, _defaultvalue, _required, _descr = options['FILENAME']
-	options['FILENAME'] = new_value, _defaultvalue, _required, _descr
+	_value, _defaultvalue, _required, _descr = options['TARGET_HOST']
+	options['TARGET_HOST'] = new_value, _defaultvalue, _required, _descr
 	
 def do_methods(line):
 	"""get allowed methods"""
