@@ -369,9 +369,10 @@ class WAFterpreter(Cmd):
        new_module.app = self           
            
        # remove currently selected plugin's functions from the Cmd command list
+
        if self.current_plugin:
            for _command in self.current_plugin.commands:
-               command = _command.__name__
+               command = _command
                if hasattr(self, command):  delattr(self, command)
                if hasattr(self, 'help_'+command):  delattr(self, 'help_'+command[5:])
                if hasattr(self, 'complete_'+command):  delattr(self, 'complete_'+command[10:])
