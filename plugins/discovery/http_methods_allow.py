@@ -10,7 +10,7 @@ print('loaded http_methods')
 options = {
 
     # <name>   <value>    <default value>    <required>    <description>
-    'TARGET_HOST': ('', '', 'Yes', 'Target host on which to get allowed methods'),
+    'TARGET_HOST': ('', '', 'yes', 'Target host on which to get allowed methods'),
     # bywaf options
     'USE_HOSTDB': ('', 'yes', 'yes', 'Use the HostDB to store information about hosts'),
 }
@@ -28,8 +28,15 @@ def set_TARGET_HOST(new_value):
 def do_methods(line):
     """get allowed methods"""
     Aurl = line
-    if not line:
-        Aurl = options['TARGET_HOST']
+    if line is None:
+        if options['TARGET_HOST'][0]:
+            Aurl = str (options['TARGET_HOST'][0])
+        else:
+            Aurl = str (options['TARGET_HOST'][1])
+
+    if not Aurl:
+        print("methods: must specify a domain on the command line or in 'TARGET_HOST' option")
+        return
 
     conn = httplib.HTTPConnection(Aurl)
     conn.request('OPTIONS', '/')
