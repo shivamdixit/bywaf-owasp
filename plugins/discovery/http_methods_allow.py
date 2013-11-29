@@ -19,7 +19,7 @@ options = {
 
 """ setting TARGET_HOST """
 def set_TARGET_HOST(new_value):
-	print('TARGET_HOST= "{}"'.format(value))
+	print('TARGET_HOST= "{}"'.format(new_value))
 	# retrieve the option (it's a tuple)       
 	_value, _defaultvalue, _required, _descr = options['FILENAME']
 	options['FILENAME'] = new_value, _defaultvalue, _required, _descr
@@ -29,7 +29,8 @@ def do_methods(line):
 	Aurl = line
 	if not line:
 		Aurl = options['TARGET_HOST']
-		conn = httplib.HTTPConnection(Aurl)
-		conn.request('OPTIONS', '/')
-		response = conn.getresponse()
-		print response.getheader('allow')
+
+    conn = httplib.HTTPConnection(Aurl)
+    conn.request('OPTIONS', '/')
+    response = conn.getresponse()
+    print response.getheader('allow')
