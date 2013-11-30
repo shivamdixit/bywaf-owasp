@@ -250,17 +250,18 @@ class WAFterpreter(Cmd):
        
        # defer first to the specific setter callback, if it exists
        try:
-           setter_func = getattr(self.current_plugin, 'get_'+name)
+           setter_func = getattr(self.current_plugin, 'set_'+name)
            setter_func(name, value)
            
-       # specific option setter callback doesn't exist,  so do a straight assignment 
+       # specific option setter callback doesn't exist,  so do a straight assignment
        except AttributeError:
-           # construct a new option tuple and set the option to it
            
+           self.print_line('raised AttributeError trying to call a set_+{}'.format(name))
+           # construct a new option tuple and set the option to it
            try:
                self.current_plugin.set_default(name, value)
            except AttributeError:
-               
+               self.print_line('raised AttributeError trying to call a set_default()'.format(name))
                # default option setter doesn't exist; fall back to a direct assignment
                self.current_plugin.options[name] = value, _defaultvalue, _required, _descr
 
