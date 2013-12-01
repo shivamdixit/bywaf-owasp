@@ -256,12 +256,13 @@ class WAFterpreter(Cmd):
        # specific option setter callback doesn't exist,  so do a straight assignment
        except AttributeError:
            
-           self.print_line('raised AttributeError trying to call a set_+{}'.format(name))
+#           self.print_line('raised AttributeError trying to call a set_{}'.format(name))
            # construct a new option tuple and set the option to it
            try:
                self.current_plugin.set_default(name, value)
            except AttributeError:
-               self.print_line('raised AttributeError trying to call a set_default()'.format(name))
+#               self.print_line('raised AttributeError trying to call a set_default({})'.format(name))
+
                # default option setter doesn't exist; fall back to a direct assignment
                self.current_plugin.options[name] = value, _defaultvalue, _required, _descr
 
@@ -652,45 +653,6 @@ class WAFterpreter(Cmd):
                self.print_line('Unknown plugin option "{}"'.format(key))
 
 
-   # old version of the above method
-   #sets plugin parameters, takes the format of 'set NAME_1=VALUE_1 NAME_2=VALUE_2 ...'   
-   def DISABLED_do_set(self, arg):
-       
-       if not self.current_plugin:
-           self.print_line('no plugin selected')
-           return
-       
-       opt_count = arg.count('=')
-       
-       if opt_count == 0:
-           self.print_line('no option set')
-           return
-       
-       #set varibles to store options
-       name, value, next_name = ('', '', '')
-
-       #is it only one 'set' ?
-       if opt_count == 1:
-           name,value = arg.split('=')
-
-           self.set_option(name, value)
-
-       elif opt_count > 1:
-           for i, param in enumerate(arg.split('=')):  # FIXME:  Do not split along escaped/quoted equals signs
-               
-               #we get a list of format: [name],[value name]...[value]
-               param_length = len(param.split())
-
-               #if it's the beginning, we will only fetch one variable- 'name'
-               if param_length > 1:
-                   value, next_name = param.split()
-                   self.set_option(name, value)
-               elif i==0:
-                   name = param
-               elif param_length == 1:
-                   value = param
-                   self.set_option(next_name, value)
-                   
    # completion function for the do_set command: return available option names
    def complete_set(self,text,line,begin_idx,end_idx):
        option_names = [opt+'=' for opt in self.current_plugin.options.keys() if opt.startswith(text)]
@@ -778,10 +740,6 @@ class WAFterpreter(Cmd):
        # display
        self.print_line('\n'.join(output_string))
 
-                   
-
-
-   # utility function for completing against a list of matches, 
    # given a list of words that have been inputted, a matchlist to match the word against, 
    # and the level of the command
    def simplecompleter(self, words, matchlist, level):
@@ -794,7 +752,6 @@ class WAFterpreter(Cmd):
       else:
            partial_word = words[level]
            return [opt + ' ' for opt in matchlist if opt.startswith(partial_word)]
-
        
    # completion function for the do_set command: return available option names
    def complete_show(self,text,line,begin_idx,end_idx):
@@ -821,7 +778,6 @@ class WAFterpreter(Cmd):
          elif words[1]=='options':
              opts = self.current_plugin.options.keys()
              return self.simplecompleter(words, opts, level=2)
-               
 
    def do_shell(self, line):
        """Execute shell commands"""
