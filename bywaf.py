@@ -370,14 +370,13 @@ class WAFterpreter(Cmd):
        new_module.app = self           
            
        # remove currently selected plugin's functions from the Cmd command list
-
        if self.current_plugin:
            for _command in self.current_plugin.commands:
                command = _command
                if hasattr(self, command):  delattr(self, command)
                if hasattr(self, 'help_'+command):  delattr(self, 'help_'+command[5:])
                if hasattr(self, 'complete_'+command):  delattr(self, 'complete_'+command[10:])
-
+               
        # register with our list of modules (i.e., insert into our dictionary of modules)
        self.plugins[new_module_name] = new_module
        
@@ -392,6 +391,16 @@ class WAFterpreter(Cmd):
        self.set_prompt(new_module_name)
        self.current_plugin_name = new_module_name
        self.current_plugin = new_module
+       
+       # set module's options up by copying over the defaults
+       # to the current values, if they have not yet been set
+       for k in self.current_plugin.options:
+           
+           # extract option's values
+           (current_value, default_value, required, description) = self.current_plugin.options[k]
+        
+           # set it to default value if current_value has not been set
+           self.set_option(k, default_value)
        
        # add module's functions to the Cmd command list
        for command_name in new_module.commands:
