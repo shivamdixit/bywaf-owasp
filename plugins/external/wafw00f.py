@@ -44,7 +44,7 @@ currentDir = os.getcwd()
 scriptDir = os.path.dirname(sys.argv[0]) or '.'
 os.chdir( scriptDir )
 
-from plugins/external/libs/evillib.p import *
+from plugins.external.libs.evillib import *
 
 __version__ = '0.9.0'
 
@@ -250,7 +250,7 @@ class WafW00F(waftoolsengine):
                 if detected:
                     break
         return detected
-
+ 
     def isbigip(self):
         return self.matchheader(('X-Cnection','^close$'), attack=True)
     
@@ -530,7 +530,7 @@ class WafW00F(waftoolsengine):
                          'BIG-IP','URLScan','WebKnight',
                          'SecureIIS','Imperva','ISA Server']
     
-    def identwaf(self, findall=False):
+    def identwaf(self,findall=False):
         detected = list()
         for wafvendor in self.wafdetectionsprio:
             self.log.info('Checking for %s' % wafvendor)
@@ -610,61 +610,85 @@ def xmlrpc_interface(bindaddr=('localhost',8001)):
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print "bye!"
+        app.print_line( "bye!")
         return
 
 
+    
+options = {
+
+   # name : (value, default_value, required, description)
+
+   # native wafw00f options
+   'TARGET_HOST': ('', '', 'yes', 'Target host on which to identify WAF; list of hosts separated by spaces'),
+   'VERBOSE': ('', '1', 'yes', 'Specify verbosity (1-3)'),
+   'FIND_ALL': ('', 'yes', 'yes', 'Find all WAFs, do not stop testing on the first one'),
+   'DISABLE_REDIRECT': ('', 'no', 'yes', 'Do not follow redirections given by 3xx responses'),
+   'TEST': ('', 'no', 'no', 'Test for one specific WAF'),
+   'LIST': ('', 'no', 'no', 'List all WAFs that we are able to detect'),
+   'VERSION': ('', 'no', 'no', 'Print out the version'),
+   'USE_XMLRPC': ('','no', 'no', 'Switch on the XML-RPC interface instead of CUI'),
+   'XMLRPC_PORT': ('', '8001', 'no', 'Specify an alternative port to listen on, default 8001'),
+   'TARGET_PORT': ('', '', 'yes', 'Target port on which to identify WAF'),
 
 
-def main(args):
-    print lackofart
-    parser = OptionParser(usage="""%prog url1 [url2 [url3 ... ]]\r\nexample: %prog http://www.victim.org/""")
-    parser.add_option('-v','--verbose',action='count', dest='verbose', default=0,
-                      help="enable verbosity - multiple -v options increase verbosity")
-    parser.add_option('-a','--findall',action='store_true', dest='findall', default=False,
-                      help="Find all WAFs, do not stop testing on the first one")
-    parser.add_option('-r','--disableredirect',action='store_false',dest='followredirect',
-                      default=True, help='Do not follow redirections given by 3xx responses')
-    parser.add_option('-t','--test',dest='test',
-                      help='Test for one specific WAF')
-    parser.add_option('-l','--list',dest='list', action='store_true',
-                      default=False,help='List all WAFs that we are able to detect')
-    parser.add_option('--xmlrpc',dest='xmlrpc', action='store_true',
-                      default=False,help='Switch on the XML-RPC interface instead of CUI')
-    parser.add_option('--xmlrpcport',dest='xmlrpcport', type='int',
-                      default=8001,help='Specify an alternative port to listen on, default 8001')
-    parser.add_option('--version','-V',dest='version', action='store_true',
-                      default=False,help='Print out the version')
-    options,args = parser.parse_args(args)
-    logging.basicConfig(level=calclogginglevel(options.verbose))
+   # bywaf options 
+   'USE_HOSTDB': ('', 'yes', 'yes', 'Use the HostDB to store information about hosts'),
+
+   # unused options
+#   'LIST': ('', 'yes','yes', 'List all WAFs that we are able to detect'),
+   'HOSTFILE': ('', '', 'no', 'list of hosts to identify; specify one host:port per line'),
+   'USE_SSL': ('', 'no', 'yes', 'Enable SSL for scanning this host'),   
+
+}
+
+def do_wafw00f(args):
+    
+    app.print_line(lackofart)
+    
+    # start processing user input options
+    
+    options_verbose = int(options['VERBOSE'][0])
+    logging.basicConfig(level=calclogginglevel(options_verbose))
     log = logging.getLogger()
 
-    # code in the parameters >here<
-    #parser.version = 
-    #parser.xmlrpcport
-    #parser.xmlrpc
-    #parser.
+    options_list = {"yes":True,"no":False}[options['LIST'][0]]
+    options_version = {"yes":True, "no":False}[options['VERSION'][0]]
+    options_xmlrpc = {"yes":True,"no":False}[options['USE_XMLRPC'][0]]
+    options_xmlrpcport = options['XMLRPC_PORT'][0]
+    options_followredirect = {"yes":False,"no":True}[options['DISABLE_REDIRECT'][0]]
+    options_findall = {"yes":True, "no":False}[options['FIND_ALL'][0]]
+    options_test = {"yes":True,"no":False}[options['TEST'][0]]
     
-    if options.list:
-        print "Can test for these WAFs:\r\n"
+    # split space-separated list of URLS into a proper Python list
+    args = [i for i in options["TARGET_HOST"][0].split(' ')]
+    
+    # code past this point is existing code that has been converted to print with app.print_line()
+    
+    if options_list:
+        app.print_line('Can test for these WAFs:\r\n')
         attacker = WafW00F(None)        
-        print '\r\n'.join(attacker.wafdetectionsprio)
+        app.print_line('\r\n'.join(attacker.wafdetectionsprio))
         return
-    if options.version:
-        print 'WAFW00F version %s' % __version__
+    if options_version:
+        app.print_line('WAFW00F version %s'.format(__version__))
         return
-    elif options.xmlrpc:
-        print "Starting XML-RPC interface"
-        xmlrpc_interface(bindaddr=('localhost',options.xmlrpcport))
+    elif options_xmlrpc:
+        app.print_line('Starting XML-RPC interface')
+        
+        xmlrpc_interface(bindaddr=('localhost',options_xmlrpcport))
         return
+    
     if len(args) == 0:
-        parser.error("we need a target site")
+        app.print_line('we need a target site')  # was parser.error before error
+        return
+        
     targets = args
     for target in targets:
         if not (target.startswith('http://') or target.startswith('https://')):
             log.info('The url %s should start with http:// or https:// .. fixing (might make this unusable)' % target)
             target = 'http://' + target
-        print "Checking %s" % target
+        app.print_line('Checking {}'.format(target))
         pret = oururlparse(target)
         if pret is None:
             log.critical('The url %s is not well formed' % target)
@@ -672,38 +696,40 @@ def main(args):
         (hostname,port,path,query,ssl) = pret
         log.info('starting wafw00f on %s' % target)
         attacker = WafW00F(hostname,port=port,ssl=ssl,
-                           debuglevel=options.verbose,path=path,
-                           followredirect=options.followredirect)
+                           debuglevel=options_verbose,path=path,
+                           followredirect=options_followredirect)
         if attacker.normalrequest() is None:
             log.error('Site %s appears to be down' % target)
             return 1 # sys.exit(1)
-        if options.test:
-            if attacker.wafdetections.has_key(options.test):
-                waf = attacker.wafdetections[options.test](attacker)
+        if options_test:
+            if attacker.wafdetections.has_key(options_test):
+                waf = attacker.wafdetections[options_test](attacker)
                 if waf:
-                    print "The site %s is behind a %s" % (target, options.test)
+                    app.print_line('The site {} is behind a {}'.format(target, options_test))
                 else:
-                    print "WAF %s was not detected on %s" % (options.test,target)
+                    app.print_line('WAF {} was not detected on {}'.format(options_test,target))
             else:
-                print "WAF %s was not found in our list\r\nUse the --list option to see what is available" % options.test
+                app.print_line('WAF {} was not found in our list\r\nUse the --list option to see what is available'.format(options_test))
             return
-        waf = attacker.identwaf(options.findall)
+        
+        app.print_line("about to launch identwaf()")
+        waf = attacker.identwaf(options_findall)
         log.info('Ident WAF: %s' % waf)
         if len(waf) > 0:
-            print 'The site %s is behind a %s' % (target, ' and/or '.join( waf))
-        if (options.findall) or len(waf) == 0:
+            app.print_line('The site {} is behind a {}'.format(target, ' and/or '.join( waf)))
+        if (options_findall) or len(waf) == 0:
             print 'Generic Detection results:'          
             if attacker.genericdetect():                
-                log.info('Generic Detection: %s' % attacker.knowledge['generic']['reason'])                    
-                print 'The site %s seems to be behind a WAF ' % target
-                print 'Reason: %s' % attacker.knowledge['generic']['reason']
+                log.info('Generic Detection: {}'.format(attacker.knowledge['generic']['reason']))
+                app.print_line('The site {} seems to be behind a WAF'.format(target))
+                app.print_line('Reason: {}'.format(attacker.knowledge['generic']['reason']))
             else:
-                print 'No WAF detected by the generic detection'
-        print 'Number of requests: %s' % attacker.requestnumber
+                app.print_line('No WAF detected by the generic detection')
+        app.print_line('Number of requests: {}'.format(attacker.requestnumber))
 
 if __name__ == '__main__':
     if sys.hexversion < 0x2040000:
         sys.stderr.write('Your version of python is way too old .. please update to 2.4 or later\r\n')        
     main()
     
-    print 'wafwoof done!!!!!!1'
+
