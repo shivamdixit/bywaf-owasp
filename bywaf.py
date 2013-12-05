@@ -251,7 +251,7 @@ class WAFterpreter(Cmd):
        # defer first to the specific setter callback, if it exists
        try:
            setter_func = getattr(self.current_plugin, 'set_'+name)
-           setter_func(name, value)
+           setter_func(value)
            
        # specific option setter callback doesn't exist,  so do a straight assignment
        except AttributeError:
