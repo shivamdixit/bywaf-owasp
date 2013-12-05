@@ -12,7 +12,7 @@ options = {
 def set_FILENAME(new_value):
     """setter callback for the FILENAME option"""
 
-    print('set_FILENAME(): setting value of FILENAME to "{}"'.format(value))
+    print('exampleplugin.set_FILENAME(): setting value of FILENAME to "{}"'.format(new_value))
 
     # retrieve the option (it's a tuple)       
     _value, _defaultvalue, _required, _descr = options['FILENAME']
@@ -21,7 +21,7 @@ def set_FILENAME(new_value):
 def set_default(name, new_value):
     """default setter callback for the options"""
     
-    print('default_setter(): setting value of {} to "{}"'.format(name, new_value))
+    print('exampleplugin.default_setter(): setting value of {} to "{}"'.format(name, new_value))
     
     # retrieve the option (it's a tuple)
     try:
