@@ -206,6 +206,9 @@ the plugin with a link back to the Wafterpreter instance assigning
 
 A plugin's path is made availabe upon loading in the plugin's .plugin_path property.
 
+If a plugin has a function named "init_plugin()" accepting no
+arguments, it will be called upon plugin load.
+
 
 What your plugin needs to define:
 ---------------------------------
