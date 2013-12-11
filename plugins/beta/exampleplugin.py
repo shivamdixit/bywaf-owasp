@@ -1,6 +1,6 @@
 # exampleplugin.py:  a model example plugin for Bywaf
 
-print('loaded example plugin')
+
 
 # required dictionary
 options = {
@@ -9,6 +9,9 @@ options = {
   'FILENAME':      ('',       '',              'No',        'Name of the file to display')  
   }
 
+def init_plugin():
+    print('loaded example plugin')
+  
 def set_FILENAME(new_value):
     """setter callback for the FILENAME option"""
 
