@@ -425,11 +425,12 @@ class WAFterpreter(Cmd):
            except AttributeError:  # complete__ not found
                pass
            
-        # call module's init_plugin(), if it exists
-        try:
-            initfunc = getattr(new_module 'init_plugin')
-            initfunc()
-        except AttributeError: # init_plugin() not found
+       # call module's init_plugin(), if it exists
+       try:
+           initfunc = getattr(new_module, 'init_plugin')
+           initfunc()
+       except AttributeError: # init_plugin() not found
+           pass
 
    def complete_use(self,text,line,begin_idx,end_idx):
        return self.filename_completer(text, line, begin_idx, end_idx, root_dir=self.global_options['PLUGIN_PATH'])
