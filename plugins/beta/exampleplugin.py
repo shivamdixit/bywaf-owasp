@@ -10,12 +10,12 @@ options = {
   }
 
 def init_plugin():
-    print('loaded example plugin')
+    app.print_line('loaded example plugin')
   
 def set_FILENAME(new_value):
     """setter callback for the FILENAME option"""
 
-    print('exampleplugin.set_FILENAME(): setting value of FILENAME to "{}"'.format(new_value))
+    app.print_line('exampleplugin.set_FILENAME(): setting value of FILENAME to "{}"'.format(new_value))
 
     # retrieve the option (it's a tuple)       
     _value, _defaultvalue, _required, _descr = options['FILENAME']
@@ -24,14 +24,14 @@ def set_FILENAME(new_value):
 def set_default(name, new_value):
     """default setter callback for the options"""
     
-    print('exampleplugin.default_setter(): setting value of {} to "{}"'.format(name, new_value))
+    app.print_line('exampleplugin.default_setter(): setting value of {} to "{}"'.format(name, new_value))
     
     # retrieve the option (it's a tuple)
     try:
         _value, _defaultvalue, _required, _descr = options[name]
         options[name] = new_value, _defaultvalue, _required, _descr
     except AttributeError:
-        print('No such option found')
+        app.print_line('No such option found')
     
 def do_sleepfunction(line):
     """sleep for a few seconds"""
@@ -44,7 +44,7 @@ def do_sleepfunction(line):
         seconds = int(options['SLEEP_SECONDS'][1]) 
 
     # sleep for the given period of seconds    
-    print('Sleeping for {} seconds....'.format(seconds))
+    app.print_line('Sleeping for {} seconds....'.format(seconds))
     import time
     time.sleep(seconds)
     
@@ -71,15 +71,15 @@ def do_cat(line):
     
     # complain if the user did not supply a filename
     if not fnames:
-        print("cat: must specify a filename on the command line or in 'filename' option")
+        app.print_line("cat: must specify a filename on the command line or in 'filename' option")
         return
 
     # iterate over filenames and display contents of each
     for fn in fnames:
         try:
-            print(cat(fn))
+            app.print_line(cat(fn))
         except IOError as e:
-            print('Could not load file "{}": {}', fn, e)
+            app.print_line('Could not load file "{}": {}', fn, e)
             
 # Completion function for cat():     
 def complete_cat(text,line,begin_idx,end_idx):
@@ -94,7 +94,7 @@ def cat(fn):
     
 def do_choice(line):
     """Select a subcommand"""
-    print('this is another command')
+    app.print_line('this is another command')
     
 def complete_choice(text,line,begin_idx,end_idx):
    option_names = ['foo', 'bar', 'baz']
