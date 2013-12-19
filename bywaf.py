@@ -17,7 +17,7 @@ import imp # for loading other modules
 import os.path
 import os
 #from functools import partial
-
+from collections import namedtuple
 
 # our library
 from hostdb import HostDatabase
@@ -50,7 +50,7 @@ class WAFterpreter(Cmd):
       # dictionary of global variable names and values
       self.global_options = {} 
       
-      # jobs are spawned using this object's "submit()"
+  # jobs are spawned using this object's "submit()"
 #      self.job_executor = concurrent.futures.ProcessPoolExecutor(DEFAULT_MAX_CONCURRENT_JOBS)      
       self.job_executor = concurrent.futures.ThreadPoolExecutor(DEFAULT_MAX_CONCURRENT_JOBS)
 
@@ -66,10 +66,13 @@ class WAFterpreter(Cmd):
       
       # list of newly-finished backgrounded plugin command jobs
       self.finished_jobs = []
+      
+      # create a handy named tuple to hold option values that are accessible by name
+      self.OptionTuple = namedtuple('Option', ['current_value',  'default_value', 'required', 'description'])
 
       # create host information database
       self.db = HostDatabase()
-      
+
       
    # ----------- Overriden Methods ------------------------------------------------------
    #
@@ -241,13 +244,11 @@ class WAFterpreter(Cmd):
        
        # cancel further input delegation
        self.delegate_input_handler = None
+
        
    # set an option's value.  Called by do_set()            
    def set_option(self, name, value):
-
-       # retrieve the option (it's a tuple)       
-       _value, _defaultvalue, _required, _descr = self.current_plugin.options[name]
-       
+ 
        # defer first to the specific setter callback, if it exists
        try:
            setter_func = getattr(self.current_plugin, 'set_'+name)
@@ -255,16 +256,16 @@ class WAFterpreter(Cmd):
            
        # specific option setter callback doesn't exist,  so do a straight assignment
        except AttributeError:
-           
-#           self.print_line('raised AttributeError trying to call a set_{}'.format(name))
-           # construct a new option tuple and set the option to it
+
+           # try setting the option with the default setter, if it exists
            try:
                self.current_plugin.set_default(name, value)
-           except AttributeError:
-#               self.print_line('raised AttributeError trying to call a set_default({})'.format(name))
 
-               # default option setter doesn't exist; fall back to a direct assignment
-               self.current_plugin.options[name] = value, _defaultvalue, _required, _descr
+           # default option setter doesn't exist; fall back to a direct assignment
+           # note, option is an instance of an 'OptionsTuple' namedtuple defined in __init__()
+           except AttributeError:
+               
+               self.current_plugin.options[name].current_value = value
 
            
    # return a Futures object given its job ID as a string or int
@@ -317,6 +318,13 @@ class WAFterpreter(Cmd):
        if not hasattr(py_mod, "options"):
            raise Exception("options dictionary not found")
        
+       # convert the module's options dictionary to a dict of NamedTuples
+       # so that we can access option value components by name rather than by index
+       for opt_name in py_mod.options:
+           
+         # initialize the namedtuple with the option's values
+         py_mod.options[opt_name] = self.OptionTuple( *py_mod.options[opt_name] )
+
        # return the loaded module
        return mod_name, py_mod
    
@@ -397,6 +405,7 @@ class WAFterpreter(Cmd):
        # to the current values, if they have not yet been set
        for k in self.current_plugin.options:
            
+#           option_tuple = self.OptionTuple(self.current_plugins.options[k])
            # extract option's values
            (current_value, default_value, required, description) = self.current_plugin.options[k]
         
