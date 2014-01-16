@@ -163,30 +163,6 @@ queries for jobs.
   - _load_module(): a private low-level method for loading modules.
     Gets called by do_use().  There should not be a reason for
     its use outside that method.
-    
-In addition to Wafterpreter API, Bywaf gives plugins the ability to
-add and query host and port information in its internal database:
-
-
-   - add_host():  Add a host to the database, where:
-           - host_ip: a string containing the host's Internet Protocol (IP) number
-           - host_name: the name associated with this host
-
-   - add_port():  Add port information for a given host to the database, where:
-           - host_ip:  a string containing the host's Internet Protocol (IP) number
-           - port_number:  a string containing the port number
-           - port_protocol: one of "tcp", "udp"
-           - service_name: name of the service or program responding to queries on this port
-           - status: can be "Open", "Closed", or "Filered".
-
-   - get_host_portinfo  Return all port information for the specified host, where:
-           - host_ip: a string containing the host's Internet Protocol (IP) number           
-
-   - list_matching_ports():  Return all hosts who have this port open, where:
-           - port_number:  a string containing the port number
-           - port_protocol: one of "tcp", "udp"
-           - service_name: name of the service or program responding to queries on this port
-           - status: optional.  Can be "Open", "Closed", or "Filered". """   
 
 
 Plugin requirements
@@ -245,10 +221,96 @@ complete_ and help_ methods.
 An example plugin definition appears in test.py.
 
 
-Design considerations
----------------------
-[tbd]
 
+Host Database (HostDB)
+======================
+
+Bywaf gives plugins the ability to save host and port information to
+its internal database, contained in the Wafterpreter instance's
+("self.db").  Its implementation can be found in hostdb.py.  
+
+
+HostDB Instance API Methods
+------------------
+
+The HostDB instance provides these database methods:
+
+
+    - add_host():  Add a host to the database, where:
+           - host_ip: a string containing the host's Internet Protocol (IPv4) number
+           - host_name: the name associated with this host
+
+    - add_port():  Add port information for a given host to the database, where:
+           - host_ip:  a string containing the host's Internet Protocol (IPv4) number
+           - port_number:  a string containing the port number
+           - port_protocol: one of "tcp", "udp"
+           - service_name: name of the service or program responding to queries on this port
+           - status: can be "Open", "Closed", or "Filered".
+
+    - get_host_portinfo  Return all port information for the specified host, where:
+           - host_ip: a string containing the host's Internet Protocol (IPv4) number
+
+    - list_matching_ports():  Return all hosts who have this port open, where:
+           - port_number:  a string containing the port number
+           - port_protocol: one of "tcp", "udp"
+           - service_name: name of the service or program responding to queries on this port
+           - status:  Can be "Open", "Closed", or "Filtered". [future work: make this optional]
+	   
+    - get_hostid(): return the internal database ID of the host whose IPv4 address matches the supplied argument
+           - hostip:  IPv4 address string of an existing host in the HostDB database
+	   
+    - get_host_portlist():  Return all port information for the specified host as a list of PortInfo objects
+           - hostip:  IPv4 address string containing the host's Internet Protocol (IPv4) address"""
+	   
+    - get_hostip_list():  Return a list of all hosts in the database, as HostInfo objects
+    
+
+
+
+HostDB Data Containers:
+-----------------------
+
+HostDB query functions return data in the form of classes shown below:
+
+
+     - PortInfo: a class for holding port information returned from HostDB queries
+       state.  It contains the following fields:
+        
+        - portnum:  integer containing the port number
+        - protocol:  either "tcp" or "udp"
+        - service_name:  Service name of the port (usually taken from /etc/services in Posix environments)
+        - state:  One of "open", "closed" or "filtered"
+
+      - HostInfo: a class for holding host information returned from HostDB queries
+        - ports:  collection of PortInfo objects
+	- hostip:  host's IPv4 address, as a string
+	- hostname: host's name
+
+
+HostDB Module Utility API Methods:
+----------------------------------
+
+     - is_tcpip_addr():  Returns True if the string specified is a valid TCPv4 address and False otherwise
+           - tcpip_addr:  a string containing the host's IPv4 address
+     - 
+
+HostDB Exceptions
+-----------------
+
+The HostDB module defines several exceptions which are thrown by
+HostDB methods:
+
+    - InvalidAddressError:  Thrown when an invalid IPv4 string was
+      supplied by the caller. Erroneous IP Address stored in ".hostip"
+      
+    - InvalidProtocolError:  Thrown when an invalid protocol string
+      (i.e. neither 'tcp' nor 'udp') was supplied by the caller.
+      Erroneous protocol string stored in ".protocol"
+      
+    - InvalidStateError: Thrown when an invalid port state string
+      (i.e. none of 'open', 'closed' or 'filtered') was supplied by the
+      caller.  Erroneous state string stored in ".state"
+    
 
    
 
