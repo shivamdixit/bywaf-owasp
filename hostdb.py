@@ -81,7 +81,7 @@ def parse_service_defs(lines):
 #
 #-----------------------------------------------------------------------------------
    
-def is_tcpip_addr(self, tcpip_addr):
+def is_tcpip_addr(tcpip_addr):
        """Utility API:  Return True if the string specified is a valid TCPv4 address and False otherwise"""
        # TODO:  Extend this to IPv6
        
@@ -110,17 +110,17 @@ class HostDatabase:
 
            CREATE TABLE Hosts(
                id        INTEGER PRIMARY KEY,
-               hostip    TEXT UNIQUE,
-               hostname  TEXT
+               hostip    VARCHAR(15) UNIQUE,
+               hostname  VARCHAR(50)
                );
         
            CREATE TABLE Ports(
                id        INTEGER PRIMARY KEY,
                portnum   INTEGER CHECK (portnum>0 and portnum<=65535),
-               protocol  TEXT,
-               svcname   TEXT,
-               state     TEXT,
-               hostip    TEXT,
+               protocol  VARCHAR(5),
+               svcname   VARCHAR(20),
+               state     VARCHAR(10),
+               hostip    VARCHAR(15),
                foreignid INTEGER,
                
                FOREIGN KEY (foreignid) REFERENCES Hosts(id)
